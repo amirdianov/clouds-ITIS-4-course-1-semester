@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 from get_instruction import get_instruction_from_storage
 from get_answer import get_answer_from_yandexGPT
+from get_text import get_question_from_photo
+
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 
@@ -32,15 +34,20 @@ async def cmd_start(message: types.Message):
 # Обработчики для текстовых сообщений
 @dp.message(F.text)
 async def handle_text_message(message: types.Message):
-    question = message.text
-    instruction = get_instruction_from_storage()
-    answer = get_answer_from_yandexGPT(instruction, question)
+    question: str = message.text
+    instruction: str = get_instruction_from_storage()
+    answer: str = get_answer_from_yandexGPT(instruction, question)
+    
     await message.reply(f"{answer}")
 
 # Обработчик для фотографий
 @dp.message(F.photo)
 async def handle_photo(message: types.Message):
-    await message.reply(f"Фотография")
+    instruction: str = get_instruction_from_storage()
+    question: str = await get_question_from_photo(bot, message)
+    answer: str = get_answer_from_yandexGPT(instruction, question)
+
+    await message.reply(f"{answer}")
 
 # Обработчик для других типов сообщений
 @dp.message()
