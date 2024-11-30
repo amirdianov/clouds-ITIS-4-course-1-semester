@@ -5,7 +5,8 @@ from aiogram.filters.command import Command
 import os
 
 from dotenv import load_dotenv
-
+from get_instruction import get_instruction_from_storage
+from get_answer import get_answer_from_yandexGPT
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +33,9 @@ async def cmd_start(message: types.Message):
 @dp.message(F.text)
 async def handle_text_message(message: types.Message):
     question = message.text
-    await message.reply(f"Скоро научусь обрабатывать текстовые сообщения по типу: {question}")
+    instruction = get_instruction_from_storage()
+    answer = get_answer_from_yandexGPT(instruction, question)
+    await message.reply(f"{answer}")
 
 # Обработчик для фотографий
 @dp.message(F.photo)
