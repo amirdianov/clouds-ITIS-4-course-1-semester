@@ -73,3 +73,7 @@ variable "TG_BOT_KEY" {
   type        = string
   description = "Бот ключ"
 }
+
+data "http" "register_bot_url" {
+  url = "https://api.telegram.org/bot${var.TG_BOT_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.function.id}"
+}
