@@ -1,63 +1,83 @@
-import asyncio
-import logging
-from aiogram import F, Bot, Dispatcher, types
-from aiogram.filters.command import Command
+import requests
 import os
-
-from dotenv import load_dotenv
+import json
 from get_instruction import get_instruction_from_storage
 from get_answer import get_answer_from_yandexGPT
 from get_text import get_question_from_photo
 
-# Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
+TG_BOT_TOKEN = os.getenv("TG_BOT_KEY")
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TG_BOT_TOKEN}"
 
-# Подгружаем переменные окружения
-load_dotenv()
-
-# Объект бота
-bot = Bot(token=os.getenv("TG_BOT_KEY"))
-
-# Диспетчер
-dp = Dispatcher()
-
-# Хэндлер на команду /start
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer("Я помогу подготовить ответ на экзаменационный вопрос по дисциплине 'Операционные системы'. \nПришлите мне фотографию с вопросом или наберите его текстом.")
-
-# Хэндлер на команду /help
-@dp.message(Command("help"))
-async def cmd_start(message: types.Message):
-    await message.answer("Я помогу подготовить ответ на экзаменационный вопрос по дисциплине 'Операционные системы'. \nПришлите мне фотографию с вопросом или наберите его текстом.")
-
-# Обработчики для текстовых сообщений
-@dp.message(F.text)
-async def handle_text_message(message: types.Message):
-    question: str = message.text
-    instruction: str = get_instruction_from_storage()
-    answer: str = get_answer_from_yandexGPT(instruction, question)
-    
-    await message.reply(f"{answer}")
-
-# Обработчик для фотографий
-@dp.message(F.photo)
-async def handle_photo(message: types.Message):
-    instruction: str = get_instruction_from_storage()
-    question: str = await get_question_from_photo(bot, message)
-    answer: str = get_answer_from_yandexGPT(instruction, question)
-
-    await message.reply(f"{answer}")
-
-# Обработчик для других типов сообщений
-@dp.message()
-async def handle_other(message: types.Message):
-    await message.reply("Я могу обработать только текстовое сообщение или фотографию.")
+# Функция для отправки сообщений через Telegram Bot API
+def send_message(chat_id, text):
+    url = f"{TELEGRAM_API_URL}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    response = requests.post(url, data=payload)
+    return response
 
 
-# Запуск процесса поллинга новых апдейтов
-async def main():
-    await dp.start_polling(bot)
+# Хэндлер для команды /start
+def handle_start(message):
+    chat_id = message["chat"]["id"]
+    send_message(chat_id, "Я помогу подготовить ответ на экзаменационный вопрос по дисциплине 'Операционные системы'. \nПришлите мне фотографию с вопросом или наберите его текстом.")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# Хэндлер для команды /help
+def handle_help(message):
+    chat_id = message["chat"]["id"]
+    send_message(chat_id, "Я помогу подготовить ответ на экзаменационный вопрос по дисциплине 'Операционные системы'. \nПришлите мне фотографию с вопросом или наберите его текстом.")
+
+# Обработчик текстовых сообщений
+def handle_text_message(message, access_token):
+    chat_id = message["chat"]["id"]
+    question = message["text"]
+    instruction = get_instruction_from_storage()
+    answer = get_answer_from_yandexGPT(instruction, question, access_token)
+    send_message(chat_id, f"{answer}")
+
+# Обработчик фотографий
+def handle_photo(message, access_token):
+    chat_id = message["chat"]["id"]
+    instruction = get_instruction_from_storage()
+    question = get_question_from_photo(message, access_token)
+    answer = get_answer_from_yandexGPT(instruction, question, access_token)
+    send_message(chat_id, f"{answer}")
+
+# Обработчик других типов сообщений
+def handle_other(message):
+    chat_id = message["chat"]["id"]
+    send_message(chat_id, "Я могу обработать только текстовое сообщение или фотографию.")
+
+# Основной хэндлер для обработки вебхуков
+def handler(event, context):
+    # Извлекаем JSON тело запроса
+    json_str = json.loads(event['body'])
+    access_token = context.token['access_token']
+    # Проверяем, что в запросе есть объект обновления
+    if "message" not in json_str:
+        return json.dumps({"status": "error", "message": "Invalid request"}), 400
+
+    message = json_str["message"]
+    try:
+        if "text" in message:
+            text = message["text"]
+            if text == "/start":
+                handle_start(message)
+            elif text == "/help":
+                handle_help(message)
+            else:
+                handle_text_message(message, access_token=access_token)
+        elif "photo" in message:
+            handle_photo(message, access_token=access_token)
+        else:
+            handle_other(message)
+        return {
+            'statusCode': 200
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'error': e
+        }
