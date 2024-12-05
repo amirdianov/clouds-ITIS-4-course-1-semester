@@ -9,26 +9,25 @@ import requests
 load_dotenv()
 
 
-async def process_image_with_yandex_vision(image_url: str):
+def process_image_with_yandex_vision(image_data: str, token: str):
+    image_base64 = base64.b64encode(image_data).decode("utf-8")
     data = {"mimeType": "JPEG",
             "languageCodes": ["*"],
-            "content": base64.b64encode(image_url.getvalue()).decode("utf-8"),
+            "content": image_base64,
             "model": "page"}
 
     url = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
 
     headers= {"Content-Type": "application/json",
-            "Authorization": "Bearer {:s}".format(os.getenv("IAM_TOKEN")),
+            "Authorization": "Bearer {:s}".format(token),
             "x-folder-id": os.getenv("FOLDER_ID"),
             "x-data-logging-enabled": "true"}
     
 
     try:
         response = requests.post(url=url, headers=headers, data=json.dumps(data))
-        print(response.text)
         if response.status_code == 200:
             data = response.json()
-            print(data["result"])
             # Проверка, есть ли распознанный текст
             if len(data["result"]['textAnnotation']) > 0:
                 recognized_text = ""
@@ -45,17 +44,25 @@ async def process_image_with_yandex_vision(image_url: str):
         logging.error(f"Ошибка при работе с Yandex OCR API: {e}")
         return None
 
-async def get_question_from_photo(bot, message):
-    file_id = message.photo[-1].file_id  # берем самое большое фото
-    file = await bot.get_file(file_id)
-    
-    # Получаем путь к файлу
-    file_path = file.file_path
-    
-    # Скачиваем фото как бинарные данные
-    photo_data = await bot.download_file(file_path)
-    
-    # Отправляем фото на Яндекс Vision API (как base64)
+def get_question_from_photo(message, token):
+    photo_info = message["photo"]
 
-    recognized_text = await process_image_with_yandex_vision(photo_data)
-    return recognized_text
+    file_id = photo_info[-1]["file_id"]
+
+    url = f"https://api.telegram.org/bot{os.getenv('TG_BOT_KEY')}/getFile?file_id={file_id}"
+    response = requests.get(url)
+    try:
+        if response.status_code == 200:
+            file_path = response.json().get('result', {}).get('file_path')
+            if file_path:
+                file_url = f"https://api.telegram.org/file/bot{os.getenv('TG_BOT_KEY')}/{file_path}"
+                image_data = requests.get(file_url).content
+                recognized_text = process_image_with_yandex_vision(image_data, token)
+                return recognized_text
+            else:
+                logging.error("Не удалось получить путь к файлу")
+                return None
+        else:
+            logging.error
+    except Exception as e:
+        print(e)
