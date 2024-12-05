@@ -49,6 +49,15 @@ data "archive_file" "zip" {
   source_dir  = "src_new"
 }
 
+resource "yandex_function_iam_binding" "function-aim-f" {
+  function_id = yandex_function.function.id
+  role        = "serverless.functions.invoker"
+
+  members = [
+    "system:allUsers"
+  ]
+}
+
 variable "CLOUD_ID" {
   type        = string
   description = "Идентификатор облака"
