@@ -36,6 +36,6 @@ def get_answer_from_yandexGPT(instruction: str, question: str, token: str):
             response_data = response.json()
             return response_data['result']['alternatives'][0]['message']["text"]  # предполагаем, что ответ возвращается в поле 'text'
         else:
-            return "Не удалось получить ответ от YandexGPT."
+            return "Я не смог подготовить ответ на экзаменационный вопрос."
     except Exception as e:
-        print(e)
+        return "Я не смог подготовить ответ на экзаменационный вопрос."

@@ -45,13 +45,11 @@ def process_image_with_yandex_vision(image_data: str, token: str):
         return None
 
 def get_question_from_photo(message, token):
-    photo_info = message["photo"]
-
-    file_id = photo_info[-1]["file_id"]
-
-    url = f"https://api.telegram.org/bot{os.getenv('tg_bot_key')}/getFile?file_id={file_id}"
-    response = requests.get(url)
     try:
+        photo_info = message["photo"]
+        file_id = photo_info[-1]["file_id"]
+        url = f"https://api.telegram.org/bot{os.getenv('tg_bot_key')}/getFile?file_id={file_id}"
+        response = requests.get(url)
         if response.status_code == 200:
             file_path = response.json().get('result', {}).get('file_path')
             if file_path:
@@ -63,6 +61,6 @@ def get_question_from_photo(message, token):
                 logging.error("Не удалось получить путь к файлу")
                 return None
         else:
-            logging.error
+            return None
     except Exception as e:
-        print(e)
+        return None

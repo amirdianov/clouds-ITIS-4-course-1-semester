@@ -42,8 +42,11 @@ def handle_photo(message, access_token):
     chat_id = message["chat"]["id"]
     instruction = get_instruction_from_storage()
     question = get_question_from_photo(message, access_token)
-    answer = get_answer_from_yandexGPT(instruction, question, access_token)
-    send_message(chat_id, f"{answer}")
+    if question:
+        answer = get_answer_from_yandexGPT(instruction, question, access_token)
+        send_message(chat_id, f"{answer}")
+    else:
+        send_message(chat_id, f"Я не могу обработать эту фотографию.")
 
 # Обработчик других типов сообщений
 def handle_other(message):
@@ -57,7 +60,7 @@ def handler(event, context):
     access_token = context.token['access_token']
     # Проверяем, что в запросе есть объект обновления
     if "message" not in json_str:
-        return json.dumps({"status": "error", "message": "Invalid request"}), 400
+        return {"statusCode": 200}
 
     message = json_str["message"]
     try:

@@ -19,7 +19,7 @@ def get_instruction_from_storage():
     )
     try:
         # Загружаем объект из Yandex Object Storage
-        response = s3_client.get_object(Bucket="vvot-25-hw1-bucket", Key="instruction.txt")
+        response = s3_client.get_object(Bucket=os.getenv("bucket_name"), Key=os.getenv("bucket_key"))
         instruction = response['Body'].read().decode('utf-8')
         return instruction
     except NoCredentialsError:
