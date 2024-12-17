@@ -65,7 +65,9 @@ resource "yandex_function" "function" {
     "yandex_secret_key" = yandex_iam_service_account_static_access_key.sa-static-key.secret_key,
     "cloud_id"          = var.cloud_id,
     "folder_id"         = var.folder_id,
-    "tg_bot_key"        = var.tg_bot_key
+    "tg_bot_key"        = var.tg_bot_key,
+    "bucket_name" = var.bucket_name,
+    "bucket_key" = var.bucket_key
   }
   content {
     zip_filename = data.archive_file.zip.output_path
