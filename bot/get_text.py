@@ -20,7 +20,7 @@ def process_image_with_yandex_vision(image_data: str, token: str):
 
     headers= {"Content-Type": "application/json",
             "Authorization": "Bearer {:s}".format(token),
-            "x-folder-id": os.getenv("FOLDER_ID"),
+            "x-folder-id": os.getenv("folder_id"),
             "x-data-logging-enabled": "true"}
     
 
@@ -49,13 +49,13 @@ def get_question_from_photo(message, token):
 
     file_id = photo_info[-1]["file_id"]
 
-    url = f"https://api.telegram.org/bot{os.getenv('TG_BOT_KEY')}/getFile?file_id={file_id}"
+    url = f"https://api.telegram.org/bot{os.getenv('tg_bot_key')}/getFile?file_id={file_id}"
     response = requests.get(url)
     try:
         if response.status_code == 200:
             file_path = response.json().get('result', {}).get('file_path')
             if file_path:
-                file_url = f"https://api.telegram.org/file/bot{os.getenv('TG_BOT_KEY')}/{file_path}"
+                file_url = f"https://api.telegram.org/file/bot{os.getenv('tg_bot_key')}/{file_path}"
                 image_data = requests.get(file_url).content
                 recognized_text = process_image_with_yandex_vision(image_data, token)
                 return recognized_text

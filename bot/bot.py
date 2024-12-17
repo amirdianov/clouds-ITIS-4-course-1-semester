@@ -5,7 +5,7 @@ from get_instruction import get_instruction_from_storage
 from get_answer import get_answer_from_yandexGPT
 from get_text import get_question_from_photo
 
-TG_BOT_TOKEN = os.getenv("TG_BOT_KEY")
+TG_BOT_TOKEN = os.getenv("tg_bot_key")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TG_BOT_TOKEN}"
 
 # Функция для отправки сообщений через Telegram Bot API

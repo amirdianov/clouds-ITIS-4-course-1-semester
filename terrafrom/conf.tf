@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "yandex" {
-  cloud_id                 = var.CLOUD_ID
-  folder_id                = var.FOLDER_ID
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
   service_account_key_file = "/home/ubuntu/tf-key/key.json"
 }
 
@@ -32,11 +32,11 @@ resource "yandex_function" "function" {
   memory     = 128
   execution_timeout = 30
   environment = {
-    "YANDEX_ACCESS_KEY" = var.YANDEX_ACCESS_KEY,
-    "YANDEX_SECRET_KEY" = var.YANDEX_SECRET_KEY,
-    "CLOUD_ID"          = var.CLOUD_ID,
-    "FOLDER_ID"         = var.FOLDER_ID,
-    "TG_BOT_KEY"        = var.TG_BOT_KEY
+    "yandex_access_key" = var.yandex_access_key,
+    "yandex_secret_key" = var.yandex_secret_key,
+    "cloud_id"          = var.cloud_id,
+    "folder_id"         = var.folder_id,
+    "tg_bot_key"        = var.tg_bot_key
   }
   content {
     zip_filename = data.archive_file.zip.output_path
@@ -58,31 +58,31 @@ resource "yandex_function_iam_binding" "function-aim-f" {
   ]
 }
 
-variable "CLOUD_ID" {
+variable "cloud_id" {
   type        = string
   description = "Идентификатор облака"
 }
 
-variable "FOLDER_ID" {
+variable "folder_id" {
   type        = string
   description = "Идентификатор папки"
 }
 
-variable "YANDEX_ACCESS_KEY" {
+variable "yandex_access_key" {
   type        = string
   description = "Идентификатор статичного ключа"
 }
 
-variable "YANDEX_SECRET_KEY" {
+variable "yandex_secret_key" {
   type        = string
   description = "Секретный ключ"
 }
 
-variable "TG_BOT_KEY" {
+variable "tg_bot_key" {
   type        = string
   description = "Бот ключ"
 }
 
 data "http" "register_bot_url" {
-  url = "https://api.telegram.org/bot${var.TG_BOT_KEY}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.function.id}"
+  url = "https://api.telegram.org/bot${var.tg_bot_key}/setWebhook?url=https://functions.yandexcloud.net/${yandex_function.function.id}"
 }

@@ -9,11 +9,11 @@ def get_answer_from_yandexGPT(instruction: str, question: str, token: str):
         url: str = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         headers: dict = {"Content-Type": "application/json", 
                 "Authorization": f"Bearer {token}", 
-                "x-folder-id": os.getenv("FOLDER_ID")}
+                "x-folder-id": os.getenv("folder_id")}
 
         # Инструкция будет отправлена вместе с вопросом
         data: dict = {
-        "modelUri": f"gpt://{os.getenv('FOLDER_ID')}/yandexgpt-lite/latest",
+        "modelUri": f"gpt://{os.getenv('folder_id')}/yandexgpt-lite/latest",
         "completionOptions": {
             "stream": False,
             "temperature": 0.1,

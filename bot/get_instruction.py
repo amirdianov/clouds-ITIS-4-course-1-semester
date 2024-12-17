@@ -10,8 +10,8 @@ def get_instruction_from_storage():
     # Создаем сессию для взаимодействия с Yandex Object Storage
     session = boto3.session.Session(
         region_name='ru-central1',
-        aws_access_key_id=os.getenv("YANDEX_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("YANDEX_SECRET_KEY"))
+        aws_access_key_id=os.getenv("yandex_access_key"),
+        aws_secret_access_key=os.getenv("yandex_secret_key"))
     
     s3_client = session.client(
         service_name='s3',
