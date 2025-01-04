@@ -22,7 +22,7 @@ resource "telegram_bot_webhook" "my_bot" {
 provider "yandex" {
   cloud_id                 = var.cloud_id
   folder_id                = var.folder_id
-  service_account_key_file = pathexpand("~/tf-key/key.json")
+  service_account_key_file = pathexpand("~/yc-keys/key.json")
 }
 
 resource "yandex_storage_bucket" "bucket" {
@@ -31,7 +31,7 @@ resource "yandex_storage_bucket" "bucket" {
 
 resource "yandex_storage_object" "text_config" {
   bucket = yandex_storage_bucket.bucket.id
-  source = pathexpand("~/src_new/instruction.txt")
+  source = pathexpand("~/terraform_dir/instruction.txt")
   key    = var.bucket_key
 }
 
